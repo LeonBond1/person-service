@@ -1,7 +1,13 @@
 package telran.java2022.person.service;
 
+import java.time.LocalDate;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import telran.java2022.person.dao.PersonRepository;
@@ -13,6 +19,7 @@ import telran.java2022.person.model.Address;
 import telran.java2022.person.model.Person;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class PersonSerciveImpl implements PersonService {
 
@@ -57,25 +64,29 @@ public class PersonSerciveImpl implements PersonService {
 
 	@Override
 	public Iterable<PersonDto> findPersonsByCity(String city) {
-		// TODO Auto-generated method stub
-		return null;
+		return personRepository.findByAddressCity(city)
+				.map(p -> modelMapper.map(p, PersonDto.class))
+				.collect(Collectors.toList());
 	}
 
 	@Override
 	public Iterable<PersonDto> findPersonsByName(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		return personRepository.findPersonByName(name)
+				.map(p -> modelMapper.map(p, PersonDto.class))
+				.collect(Collectors.toList());
 	}
 
 	@Override
 	public Iterable<PersonDto> findPersonsBetweenAge(Integer minAge, Integer maxAge) {
-		// TODO Auto-generated method stub
-		return null;
+		LocalDate minDate = LocalDate.now().minusYears(minAge);
+		LocalDate maxDate = LocalDate.now().minusYears(maxAge);
+		return personRepository.findByBirthDateBetween(maxDate, minDate)
+				.map(p -> modelMapper.map(p, PersonDto.class))
+				.collect(Collectors.toList());
 	}
 
 	@Override
 	public Iterable<CityPopulationDto> getCitiesPopulation() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
