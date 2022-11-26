@@ -1,9 +1,9 @@
 package telran.java2022.person.service;
 
 import java.time.LocalDate;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -25,9 +25,13 @@ public class PersonSerciveImpl implements PersonService {
 
 	final PersonRepository personRepository;
 	final ModelMapper modelMapper;
-	
+
 	@Override
+	@Transactional
 	public Boolean addPerson(PersonDto personDto) {
+		if(personRepository.existsById(personDto.getId())) {
+			return false;
+		}
 		personRepository.save(modelMapper.map(personDto, Person.class));
 		return true;
 	}
@@ -46,23 +50,24 @@ public class PersonSerciveImpl implements PersonService {
 	}
 
 	@Override
+	@Transactional
 	public PersonDto updatePersonName(Integer id, String name) {
 		Person person = personRepository.findById(id).orElseThrow(PersonNotFoundException::new);
-		person.setName(name);
 		personRepository.save(person);
 		return modelMapper.map(person, PersonDto.class);
 	}
 
 	@Override
+	@Transactional
 	public PersonDto updatePersonAddress(Integer id, AddressDto addressDto) {
 		Person person = personRepository.findById(id).orElseThrow(PersonNotFoundException::new);
 		Address address = modelMapper.map(addressDto, Address.class);
 		person.setAddress(address);
-		personRepository.save(person);
 		return modelMapper.map(person, PersonDto.class);
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Iterable<PersonDto> findPersonsByCity(String city) {
 		return personRepository.findByAddressCity(city)
 				.map(p -> modelMapper.map(p, PersonDto.class))
@@ -87,7 +92,13 @@ public class PersonSerciveImpl implements PersonService {
 
 	@Override
 	public Iterable<CityPopulationDto> getCitiesPopulation() {
-		return null;
+		Map<String, Long> population = StreamSupport.stream(personRepository.findAll().spliterator(), false)
+				.collect(Collectors.groupingBy(p -> p.getAddress().getCity(), Collectors.counting()));
+		return population.entrySet().stream()
+				.map(e -> new CityPopulationDto(e.getKey(), e.getValue()))
+				.collect(Collectors.toList());
 	}
 
 }
+
+

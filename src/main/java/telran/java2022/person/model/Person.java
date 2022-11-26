@@ -16,7 +16,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @EqualsAndHashCode(of = "id")
-@Entity
+@Entity //(name = "Person") -> if we wanted to change the name of the entity as it will be showen in the DB
 @Table(name = "persons")
 public class Person {
 	@Id
